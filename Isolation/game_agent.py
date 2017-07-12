@@ -148,6 +148,10 @@ class MinimaxPlayer(IsolationPlayer):
         # Return the best move from the last completed search iteration
         return best_move
 
+	def timecheck():
+		if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+	
     def minimax(self, game, depth):
         """Implement depth-limited minimax search algorithm as described in
         the lectures.
@@ -184,51 +188,56 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
-        """
-    function minimax(node, depth, maximizingPlayer)
-        if depth = 0 
-           return the heuristic value of node
-        """
-        legal_moves = game.get_legal_moves()
-        if depth == 0:
-            return self.score(game, self), (-1,-1)
-        """
-        if node is a terminal node
-           return the heuristic value of node
-        """
-        if not legal_moves:
-            return self.score(game, self), (-1,-1)
-        """
-        if maximizingPlayer
-            bestValue := −∞
-            for each child of node
-                v := minimax(child, depth − 1, FALSE)
-                bestValue := max(bestValue, v)
-            return bestValue
-        """
-        bestMove = (-1,-1)
-        if maximizing_player:
-            bestValue = float("-inf")
-            for move in legal_moves:
-                score, _move = self.minimax(game.forecast_move(move), depth-1, false)
-                if score > bestValue:
-                    bestValue, bestMove = score, move
-            return bestValue, bestMove
-        """
-        else    (* minimizing player *)
-            bestValue := +∞
-            for each child of node
-                v := minimax(child, depth − 1, TRUE)
-                bestValue := min(bestValue, v)
-            return bestValue
-        """
-        else:
-            bestValue = float("+inf")
-            for move in legal_moves:
-                score, _move = self.minimax(game.forecast_move(move), depth-1, TRUE)
-                if score < bestValue:
-                    bestValue, bestMove = score, move
-            return bestValue, bestMove
+		"""
+		return arg max a  ACTIONS(s) MIN-VALUE(RESULT(state, a))
+		"""
+		return min_value(game.forecast_move(move), depth-1)
+		
+	def max_value(self, game, depth):
+		"""
+		if TERMINAL-TEST(state) then return UTILITY(state)
+		v ← −∞
+		for each a in ACTIONS(state) do
+		   v ← MAX(v, MIN-VALUE(RESULT(state, a)))
+		return v
+		"""
+		self.timecheck()
+		if depth == 0:
+			return self.score(game.active_player, self)
+        
+		moves = game.get_legal_moves()
+		if not moves:
+			return self.score(game.inactive_player, self)
+			
+		alpha = float("-inf")
+		for move in legal_moves:
+			score = self.min_value(game.forecast_move(move), depth-1)
+			if score > alpha:
+				alpha = score
+		return alpha
+		
+	def min_value(self, game, depth):
+		"""
+		if TERMINAL-TEST(state) then return UTILITY(state)
+		v ← ∞
+		for each a in ACTIONS(state) do
+		   v ← MIN(v, MAX-VALUE(RESULT(state, a)))
+		return v
+		"""
+		self.timecheck()
+		if depth == 0:
+			return self.score(game.active_player, self)
+        
+		moves = game.get_legal_moves()
+		if not moves:
+			return self.score(game.inactive_player, self)
+		
+		beta = float("+inf")
+		for move in legal_moves:
+			score = self.max_value(game.forecast_move(move), depth-1)
+			if score < beta:
+				beta = score
+		return beta
 
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
@@ -334,7 +343,7 @@ class AlphaBetaPlayer(IsolationPlayer):
            return the heuristic value of node
         """
         if not legal_moves:
-            return self.score(game, self), (-1,-1)
+            return (game.utility(self), (-1, -1))
         """
         if maximizingPlayer
             bestValue := −∞
