@@ -3,7 +3,6 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
-import sys
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
@@ -30,7 +29,11 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
 
 
 def custom_score_2(game, player):
@@ -52,7 +55,11 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
 
 
 def custom_score_3(game, player):
@@ -74,7 +81,11 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
 
 
 class IsolationPlayer:
@@ -203,11 +214,11 @@ class MinimaxPlayer(IsolationPlayer):
 		"""
 		self.timecheck()
 		if depth == 0:
-			return self.score(game.active_player, self)
+			return self.score(game.inactive_player, self)
         
 		moves = game.get_legal_moves()
 		if not moves:
-			return self.score(game.inactive_player, self)
+			return self.score(game.active_player, self)
 			
 		value = float("-inf")
 		for move in legal_moves:
@@ -224,11 +235,11 @@ class MinimaxPlayer(IsolationPlayer):
 		"""
 		self.timecheck()
 		if depth == 0:
-			return self.score(game.active_player, self)
+			return self.score(game.inactive_player, self)
         
 		moves = game.get_legal_moves()
 		if not moves:
-			return self.score(game.inactive_player, self)
+			return self.score(game.active_player, self)
 		
 		value = float("+inf")
 		for move in legal_moves:
@@ -349,11 +360,11 @@ class AlphaBetaPlayer(IsolationPlayer):
 		"""
 		self.timecheck()
 		if depth == 0:
-			return self.score(game.active_player, self)
+			return self.score(game.inactive_player, self)
         
 		moves = game.get_legal_moves()
 		if not moves:
-			return self.score(game.inactive_player, self)
+			return self.score(game.active_player, self)
 			
 		value = float("-inf")
 		for move in legal_moves:
@@ -375,11 +386,11 @@ class AlphaBetaPlayer(IsolationPlayer):
 		"""
 		self.timecheck()
 		if depth == 0:
-			return self.score(game.active_player, self)
+			return self.score(game.inactive_player, self)
         
 		moves = game.get_legal_moves()
 		if not moves:
-			return self.score(game.inactive_player, self)
+			return self.score(game.active_player, self)
 		
 		value = float("+inf")
 		for move in legal_moves:
