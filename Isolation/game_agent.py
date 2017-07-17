@@ -2,7 +2,7 @@
 test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
-import random
+#import random
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
