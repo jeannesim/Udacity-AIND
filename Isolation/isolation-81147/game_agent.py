@@ -202,30 +202,15 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-                
-        # TODO: finish this function!
-        self.timecheck()
-        if depth == 0:
-            return self.score(game.inactive_player, self)
-        
-        moves = game.get_legal_moves()
-        if not moves:
-            return self.score(game.active_player, self)
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
 
-        moves = game.get_legal_moves()
-        
-        best_move = moves[0]
-        
-        best_score = float('-inf')
-        for move in moves:
-            clone = game.forecast_move(move)
-            score = self.min_value(clone, depth-1)
-            if score > best_score:
-                best_move = move
-                best_score = score
-                    
-        return best_move
-    
+        # TODO: finish this function!
+        """
+        return arg max a  ACTIONS(s) MIN-VALUE(RESULT(state, a))
+        """
+        return min_value(game.forecast_move(move), depth-1)
+		
     def max_value(self, game, depth):
         """
         if TERMINAL-TEST(state) then return UTILITY(state)
@@ -243,7 +228,7 @@ class MinimaxPlayer(IsolationPlayer):
             return self.score(game.active_player, self)
 			
         value = float("-inf")
-        for move in moves:
+        for move in legal_moves:
             value = max(value, self.min_value(game.forecast_move(move), depth-1))
         return value
 		
@@ -264,7 +249,7 @@ class MinimaxPlayer(IsolationPlayer):
             return self.score(game.active_player, self)
 		
         value = float("+inf")
-        for move in moves:
+        for move in legal_moves:
             value = min(value, self.max_value(game.forecast_move(move), depth-1))
         return value
 
@@ -314,11 +299,9 @@ class AlphaBetaPlayer(IsolationPlayer):
                 result ← DEPTH-LIMITED-SEARCH(problem,depth)
                 if result ≠ cutoff then return result
             """
-            while True:
+            while true:
                 depth += 1
                 best_move = self.alphabeta(game, depth)
-                if self.time_left() < self.TIMER_THRESHOLD:
-                    return best_move
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -362,27 +345,15 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        self.timecheck()
-        if depth == 0:
-            return self.score(game.inactive_player, self)
-        
-        moves = game.get_legal_moves()
-        if not moves:
-            return self.score(game.active_player, self)
-
-        moves = game.get_legal_moves()
-        
-        best_move = moves[0]
-        
-        best_score = float('-inf')
-        for move in moves:
-            clone = game.forecast_move(move)
-            score = self.min_value(clone, depth-1, alpha, beta)
-            if score > best_score:
-                best_move = move
-                best_score = score
-                    
-        return best_move
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+		
+        """
+        v ← MAX-VALUE(state, −∞, +∞)
+        return the action in ACTIONS(state) with value v
+        """
+        value = max_value(game.forecast_move(move), float("-inf"), float("+inf"))
+        return value
 		
     def max_value(self, game, depth, alpha, beta):
         """
@@ -403,7 +374,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             return self.score(game.active_player, self)
 			
         value = float("-inf")
-        for move in moves:
+        for move in legal_moves:
             value = max(value, self.min_value(game.forecast_move(move), depth-1, alpha, beta))
             if value >= beta:
                 return value
@@ -429,7 +400,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             return self.score(game.active_player, self)
 		
         value = float("+inf")
-        for move in moves:
+        for move in legal_moves:
             value = min(value, self.max_value(game.forecast_move(move), depth-1, alpha, beta))
             if value <= alpha:
                 return value
