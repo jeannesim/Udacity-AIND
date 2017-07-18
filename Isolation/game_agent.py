@@ -34,7 +34,7 @@ def custom_score(game, player):
 
     if game.is_winner(player):
         return float("inf")
-    return float(game.get_legal_moves(player))
+    return float(len(game.get_legal_moves(player)))
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
