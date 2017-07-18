@@ -227,13 +227,6 @@ class MinimaxPlayer(IsolationPlayer):
         return best_move
     
     def max_value(self, game, depth):
-        """
-        if TERMINAL-TEST(state) then return UTILITY(state)
-        v ← −∞
-        for each a in ACTIONS(state) do
-            v ← MAX(v, MIN-VALUE(RESULT(state, a)))
-        return v
-        """
         self.timecheck()
         if depth == 0:
             return self.score(game.inactive_player, self)
@@ -248,13 +241,6 @@ class MinimaxPlayer(IsolationPlayer):
         return value
 		
     def min_value(self, game, depth):
-        """
-        if TERMINAL-TEST(state) then return UTILITY(state)
-        v ← ∞
-        for each a in ACTIONS(state) do
-             v ← MIN(v, MAX-VALUE(RESULT(state, a)))
-        return v
-        """
         self.timecheck()
         if depth == 0:
             return self.score(game.inactive_player, self)
@@ -309,11 +295,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            """
-            for depth = 0 to ∞ do
-                result ← DEPTH-LIMITED-SEARCH(problem,depth)
-                if result ≠ cutoff then return result
-            """
             while True:
                 depth += 1
                 best_move = self.alphabeta(game, depth)
@@ -385,15 +366,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         return best_move
 		
     def max_value(self, game, depth, alpha, beta):
-        """
-        if TERMINAL-TEST(state) the return UTILITY(state)
-        v ← −∞
-        for each a in ACTIONS(state) do
-             v ← MAX(v, MIN-VALUE(RESULT(state, a), α, β))
-             if v ≥ β then return v
-             α ← MAX(α, v)
-        return v
-        """
         self.timecheck()
         if depth == 0:
             return self.score(game.inactive_player, self)
@@ -411,15 +383,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         return value
 		
     def min_value(self, game, depth, alpha, beta):
-        """
-        if TERMINAL-TEST(state) the return UTILITY(state)
-        v ← +∞
-        for each a in ACTIONS(state) do
-             v ← MIN(v, MAX-VALUE(RESULT(state, a), α, β))
-             if v ≤ α then return v
-             β ← MIN(β, v)
-         return v
-         """
         self.timecheck()
         if depth == 0:
             return self.score(game.inactive_player, self)
