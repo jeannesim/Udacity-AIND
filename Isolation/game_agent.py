@@ -206,34 +206,34 @@ class MinimaxPlayer(IsolationPlayer):
         # TODO: finish this function!
         self.timecheck()
         if depth == 0:
-            return self.score(game.inactive_player, self)
+            return self.score(game, self)
         
         moves = game.get_legal_moves()
         if not moves:
-            return self.score(game.active_player, self)
+            return self.score(game, self)
 
         moves = game.get_legal_moves()
         
-        best_move = moves[0]
+        self.best_move = moves[0]
         
         best_score = float('-inf')
         for move in moves:
             clone = game.forecast_move(move)
             score = self.min_value(clone, depth-1)
             if score > best_score:
-                best_move = move
+                self.best_move = move
                 best_score = score
                     
-        return best_move
+        return self.best_move
     
     def max_value(self, game, depth):
         self.timecheck()
         if depth == 0:
-            return self.score(game.inactive_player, self)
+            return self.score(game, self)
         
         moves = game.get_legal_moves()
         if not moves:
-            return self.score(game.active_player, self)
+            return self.score(game, self)
 			
         value = float("-inf")
         for move in moves:
@@ -243,11 +243,11 @@ class MinimaxPlayer(IsolationPlayer):
     def min_value(self, game, depth):
         self.timecheck()
         if depth == 0:
-            return self.score(game.inactive_player, self)
+            return self.score(game, self)
 
         moves = game.get_legal_moves()
         if not moves:
-            return self.score(game.active_player, self)
+            return self.score(game, self)
 		
         value = float("+inf")
         for move in moves:
@@ -345,11 +345,11 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.timecheck()
         if depth == 0:
-            return self.score(game.inactive_player, self)
+            return self.score(game, self)
         
         moves = game.get_legal_moves()
         if not moves:
-            return self.score(game.active_player, self)
+            return self.score(game, self)
 
         moves = game.get_legal_moves()
         
@@ -368,11 +368,11 @@ class AlphaBetaPlayer(IsolationPlayer):
     def max_value(self, game, depth, alpha, beta):
         self.timecheck()
         if depth == 0:
-            return self.score(game.inactive_player, self)
+            return self.score(game, self)
         
         moves = game.get_legal_moves()
         if not moves:
-            return self.score(game.active_player, self)
+            return self.score(game, self)
 			
         value = float("-inf")
         for move in moves:
@@ -385,11 +385,11 @@ class AlphaBetaPlayer(IsolationPlayer):
     def min_value(self, game, depth, alpha, beta):
         self.timecheck()
         if depth == 0:
-            return self.score(game.inactive_player, self)
+            return self.score(game, self)
         
         moves = game.get_legal_moves()
         if not moves:
-            return self.score(game.active_player, self)
+            return self.score(game, self)
 		
         value = float("+inf")
         for move in moves:
