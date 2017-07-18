@@ -356,13 +356,13 @@ class AlphaBetaPlayer(IsolationPlayer):
             return self.score(game, self)
 
         moves = game.get_legal_moves()
+        moves.sort()
         
         best_move = moves[0]
         
         best_score = float('-inf')
         for move in moves:
-            clone = game.forecast_move(move)
-            score = self.min_value(clone, depth-1, alpha, beta)
+            score = self.min_value(game.forecast_move(move), depth-1, alpha, beta)
             if score > best_score:
                 best_move = move
                 best_score = score
