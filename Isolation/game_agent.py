@@ -204,20 +204,18 @@ class MinimaxPlayer(IsolationPlayer):
         """
                 
         # TODO: finish this function!
-        self.timecheck()
         if depth == 0:
             return self.score(game, self)
         
         moves = game.get_legal_moves()
         if not moves:
             return self.score(game, self)
-
-        moves = game.get_legal_moves()
         
         self.best_move = moves[0]
         
         best_score = float('-inf')
         for move in moves:
+            self.timecheck()
             clone = game.forecast_move(move)
             score = self.min_value(clone, depth-1)
             if score > best_score:
@@ -227,7 +225,6 @@ class MinimaxPlayer(IsolationPlayer):
         return self.best_move
     
     def max_value(self, game, depth):
-        self.timecheck()
         if depth == 0:
             return self.score(game, self)
         
@@ -237,11 +234,11 @@ class MinimaxPlayer(IsolationPlayer):
 			
         value = float("-inf")
         for move in moves:
+            self.timecheck()
             value = max(value, self.min_value(game.forecast_move(move), depth-1))
         return value
 		
     def min_value(self, game, depth):
-        self.timecheck()
         if depth == 0:
             return self.score(game, self)
 
@@ -251,6 +248,7 @@ class MinimaxPlayer(IsolationPlayer):
 		
         value = float("+inf")
         for move in moves:
+            self.timecheck()
             value = min(value, self.max_value(game.forecast_move(move), depth-1))
         return value
 
@@ -347,39 +345,36 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
-        self.timecheck()
         if depth == 0:
             return self.score(game, self)
         
         moves = game.get_legal_moves()
         if not moves:
             return self.score(game, self)
-
-        moves = game.get_legal_moves()
-        moves.sort()
         
-        best_move = moves[0]
+        self.best_move = moves[0]
         
         best_score = float('-inf')
         for move in moves:
+            self.timecheck()
             score = self.min_value(game.forecast_move(move), depth-1, alpha, beta)
             if score > best_score:
-                best_move = move
+                self.best_move = move
                 best_score = score
                     
-        return best_move
+        return self.best_move
 		
     def max_value(self, game, depth, alpha, beta):
-        self.timecheck()
         if depth == 0:
             return self.score(game, self)
         
-        moves = game.get_legal_moves()
+        moves = game.get_legal_moves(self)
         if not moves:
             return self.score(game, self)
 			
         value = float("-inf")
         for move in moves:
+            self.timecheck()
             value = max(value, self.min_value(game.forecast_move(move), depth-1, alpha, beta))
             if value >= beta:
                 return value
@@ -387,16 +382,16 @@ class AlphaBetaPlayer(IsolationPlayer):
         return value
 		
     def min_value(self, game, depth, alpha, beta):
-        self.timecheck()
         if depth == 0:
             return self.score(game, self)
         
-        moves = game.get_legal_moves()
+        moves = game.get_legal_moves(game.get_opponent(self))
         if not moves:
             return self.score(game, self)
 		
         value = float("+inf")
         for move in moves:
+            self.timecheck()
             value = min(value, self.max_value(game.forecast_move(move), depth-1, alpha, beta))
             if value <= alpha:
                 return value
