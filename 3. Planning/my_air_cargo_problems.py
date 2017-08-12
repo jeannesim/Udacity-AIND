@@ -9,7 +9,7 @@ from lp_utils import (
 )
 from my_planning_graph import PlanningGraph
 
-from functools import lru_cache
+#from functools import lru_cache
 
 
 class AirCargoProblem(Problem):
@@ -61,24 +61,24 @@ class AirCargoProblem(Problem):
             """
             loads = []
             # TODO create all load ground actions from the domain Load action
-			for plane in self.planes:
-				for cargo in self.cargos:
-					for airport in self.airports:
-						precond_pos = [
-							expr("At({}, {})".format(cargo, airport)),
-							expr("At({}, {})".format(plane, airport))
-						]
-						precond_neg = []
-						
-						effect_add = [expr("In({},{})".format(cargo, plane))]
-						effect_rem = [expr("At({},{})".format(cargo, airport))]
-						
-						load = Action(
-							expr("Load({},{},{})".format(cargo, plane, airport)),
-							[precond_pos, precond_neg],
-							[effect_add, effect_rem]
-						)
-						loads.append(load)
+            for plane in self.planes:
+                for cargo in self.cargos:
+                    for airport in self.airports:
+                        precond_pos = [
+                                expr("At({}, {})".format(cargo, airport)),
+                                expr("At({}, {})".format(plane, airport))
+                                ]
+                        precond_neg = []
+					
+                    effect_add = [expr("In({},{})".format(cargo, plane))]
+                    effect_rem = [expr("At({},{})".format(cargo, airport))]
+					
+                    load = Action(
+                            expr("Load({},{},{})".format(cargo, plane, airport)),
+                            [precond_pos, precond_neg],
+                            [effect_add, effect_rem]
+                            )
+                    loads.append(load)
             return loads
 
         def unload_actions():
@@ -124,26 +124,26 @@ class AirCargoProblem(Problem):
         # TODO implement
         possible_actions = []
 		
-		dstate = decode_state(state, self.state_map)
-		dstate_pos = dstate.pos
-		dstate_neg = dstate.neg
+        dstate = decode_state(state, self.state_map)
+        dstate_pos = dstate.pos
+        dstate_neg = dstate.neg
 		
-		for action in self.actions_list:
-			isaction = True
+        for action in self.actions_list:
+            isaction = True
 			
-			for pos_action in action.precond_pos:
-				if pos_action not in dstate_pos:
-					isaction = False
-					break
+            for pos_action in action.precond_pos:
+                if pos_action not in dstate_pos:
+                    isaction = False
+                    break
 			
-			for neg_action in action.precond_neg:
-				if neg_action not in dstate_neg:
-					isaction = False
-					break
+            for neg_action in action.precond_neg:
+                if neg_action not in dstate_neg:
+                    isaction = False
+                    break
 		
-			if isaction:
-				possible_actions.append(action)
-		
+            if isaction:
+                possible_actions.append(action)
+
         return possible_actions
 
     def result(self, state: str, action: Action):
@@ -158,19 +158,19 @@ class AirCargoProblem(Problem):
         # TODO implement
         new_state = FluentState([], [])
 		
-		dstate = decode_state(state, self.state_map)
-		dstate_pos = dstate.pos
-		dstate_neg = dstate.neg
+        dstate = decode_state(state, self.state_map)
+        dstate_pos = dstate.pos
+        dstate_neg = dstate.neg
 		
-		for add_state in action.effect_add:
-			dstate_pos.append(add_state)
-			dstate_neg.remove(add_state)
+        for add_state in action.effect_add:
+            dstate_pos.append(add_state)
+            dstate_neg.remove(add_state)
 			
-		for rem_state in action.effect_rem:
-			dstate_pos.remove(rem_state)
-			dstate_neg.append(rem_state)
+        for rem_state in action.effect_rem:
+            dstate_pos.remove(rem_state)
+            dstate_neg.append(rem_state)
 		
-		new_state = FluentState(dstate_pos, dstate_neg)
+        new_state = FluentState(dstate_pos, dstate_neg)
 		
         return encode_state(new_state, self.state_map)
 
@@ -192,7 +192,6 @@ class AirCargoProblem(Problem):
         h_const = 1
         return h_const
 
-    @lru_cache(maxsize=8192)
     def h_pg_levelsum(self, node: Node):
         """This heuristic uses a planning graph representation of the problem
         state space to estimate the sum of all actions that must be carried
@@ -204,7 +203,6 @@ class AirCargoProblem(Problem):
         pg_levelsum = pg.h_levelsum()
         return pg_levelsum
 
-    @lru_cache(maxsize=8192)
     def h_ignore_preconditions(self, node: Node):
         """This heuristic estimates the minimum number of actions that must be
         carried out from the current state in order to satisfy all of the goal
@@ -214,11 +212,11 @@ class AirCargoProblem(Problem):
         # TODO implement (see Russell-Norvig Ed-3 10.2.3  or Russell-Norvig Ed-2 11.2)
         count = 0
 		
-		kb = PropKB()
-		kb.tell(decode_state(node.state, self.state_map).pos_sentence())
-		for clause in self.goal:
-			if clause not in kb.clauses:
-				count +=1
+        kb = PropKB()
+        kb.tell(decode_state(node.state, self.state_map).pos_sentence())
+        for clause in self.goal:
+            if clause not in kb.clauses:
+                count +=1
 		
         return count
 
