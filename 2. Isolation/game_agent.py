@@ -8,37 +8,10 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
-
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
     This should be the best heuristic function for your project submission.
-    Note: this function should be called from within a Player instance as
-    `self.score()` -- you should not need to call this function directly.
-    Parameters
-    ----------
-    game : `isolation.Board`
-        An instance of `isolation.Board` encoding the current state of the
-        game (e.g., player locations and blocked cells).
-    player : object
-        A player instance in the current game (i.e., an object corresponding to
-        one of the player objects `game.__player_1__` or `game.__player_2__`.)
-    Returns
-    -------
-    float
-        The heuristic value of the current game state to the specified player.
-    """
-    # TODO: finish this function!
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
-    return float(len(game.get_legal_moves(player)))
-
-def custom_score_2(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
     Parameters
@@ -66,6 +39,47 @@ def custom_score_2(game, player):
     
     return float(my_moves - opp_moves)
 
+def custom_score_2(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+    # TODO: finish this function!
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+    
+    moves_own = len(game.get_legal_moves(player))
+    moves_opp = len(game.get_legal_moves(game.get_opponent(player)))
+    board = game.height * game.width
+    moves_board = game.move_count / board
+    if moves_board > 0.33:
+        move_diff = (moves_own - moves_opp*2) 
+    else:
+        move_diff = (moves_own - moves_opp)
+
+    pos_own = game.get_player_location(player)
+    pos_opp = game.get_player_location(game.get_opponent(player))
+
+    m_distance = abs(pos_own[0] - pos_opp[0]) + abs(pos_own[1] - pos_opp[1])
+
+    return float(move_diff / m_distance)
+
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
@@ -90,6 +104,7 @@ def custom_score_3(game, player):
 
     if game.is_winner(player):
         return float("inf")
+    
     my_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
     
@@ -204,6 +219,7 @@ class MinimaxPlayer(IsolationPlayer):
         """
                 
         # TODO: finish this function!
+        # when depth = 0 and when there are no moves left, return the value of the state
         if depth == 0:
             return self.score(game, self)
         
@@ -214,6 +230,8 @@ class MinimaxPlayer(IsolationPlayer):
         self.best_move = moves[0]
         
         best_score = float('-inf')
+        
+        # get the best move from all legal moves available
         for move in moves:
             self.timecheck()
             clone = game.forecast_move(move)
@@ -225,28 +243,36 @@ class MinimaxPlayer(IsolationPlayer):
         return self.best_move
     
     def max_value(self, game, depth):
+        
+        # when depth = 0 and when there are no moves left, return the value of the state
         if depth == 0:
             return self.score(game, self)
-        
+         
         moves = game.get_legal_moves()
         if not moves:
             return self.score(game, self)
-			
+             
         value = float("-inf")
+        
+        # get the best move from all legal moves available
         for move in moves:
             self.timecheck()
             value = max(value, self.min_value(game.forecast_move(move), depth-1))
         return value
-		
+         
     def min_value(self, game, depth):
+        
+        # when depth = 0 and when there are no moves left, return the value of the state
         if depth == 0:
             return self.score(game, self)
-
+ 
         moves = game.get_legal_moves()
         if not moves:
             return self.score(game, self)
-		
+         
         value = float("+inf")
+        
+        # get the best move from all legal moves available
         for move in moves:
             self.timecheck()
             value = min(value, self.max_value(game.forecast_move(move), depth-1))
@@ -345,55 +371,50 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        score, move = self.max_value(game, depth, alpha, beta)
+        return move
+		
+    def max_value(self, game, depth, alpha, beta):
+        self.timecheck()
+		
         if depth == 0:
-            return self.score(game, self)
+            return self.score(game, self), (-1,-1)
         
         moves = game.get_legal_moves()
         if not moves:
-            return self.score(game, self)
-        
-        self.best_move = moves[0]
-        
-        best_score = float('-inf')
-        for move in moves:
-            self.timecheck()
-            score = self.min_value(game.forecast_move(move), depth-1, alpha, beta)
-            if score > best_score:
-                self.best_move = move
-                best_score = score
-                    
-        return self.best_move
-		
-    def max_value(self, game, depth, alpha, beta):
-        if depth == 0:
-            return self.score(game, self)
-        
-        moves = game.get_legal_moves(self)
-        if not moves:
-            return self.score(game, self)
+            return float("-inf"), (-1,-1)
 			
-        value = float("-inf")
+        bestvalue = float("-inf")
+        bestmove = (-1,-1)
         for move in moves:
-            self.timecheck()
-            value = max(value, self.min_value(game.forecast_move(move), depth-1, alpha, beta))
+            value, returnmove = self.min_value(game.forecast_move(move), depth-1, alpha, beta)
             if value >= beta:
-                return value
+                return value, bestmove
             alpha = max(alpha, value)
-        return value
+            if value > bestvalue:
+                bestvalue = value
+                bestmove = move
+        return bestvalue, bestmove
 		
     def min_value(self, game, depth, alpha, beta):
-        if depth == 0:
-            return self.score(game, self)
-        
-        moves = game.get_legal_moves(game.get_opponent(self))
-        if not moves:
-            return self.score(game, self)
+        self.timecheck()
 		
-        value = float("+inf")
+        if depth == 0:
+            return self.score(game, self),(-1,-1)
+        
+        moves = game.get_legal_moves()
+        if not moves:
+            return float("inf"), (-1,-1)
+		
+        bestvalue = float("+inf")
+        bestmove = (-1,-1)
+		
         for move in moves:
-            self.timecheck()
-            value = min(value, self.max_value(game.forecast_move(move), depth-1, alpha, beta))
+            value, returnmove = self.max_value(game.forecast_move(move), depth-1, alpha, beta)
             if value <= alpha:
-                return value
+                return value, move
             beta = min(beta, value)
-        return value
+            if value < bestvalue:
+                bestvalue = value
+                bestmove = move
+        return bestvalue, bestmove
