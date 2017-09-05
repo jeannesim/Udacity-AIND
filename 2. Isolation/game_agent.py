@@ -67,15 +67,26 @@ def custom_score_2(game, player):
     moves_own = len(game.get_legal_moves(player))
     moves_opp = len(game.get_legal_moves(game.get_opponent(player)))
     board = game.height * game.width
+    
+    #this detects how far are we are in the game, game phase detection. Opening/midgame/endgame
     moves_board = game.move_count / board
+    
     if moves_board > 0.33:
+        #if more than 33% of the board is occupied (so roughly we are over the opening) the number of 
+        #possible opponents moves gets a weight factor (so as we near to the end it is more important 
+        #how many moves our opponent has than we do!)
         move_diff = (moves_own - moves_opp*2) 
     else:
         move_diff = (moves_own - moves_opp)
 
     pos_own = game.get_player_location(player)
     pos_opp = game.get_player_location(game.get_opponent(player))
-
+    
+    #this one I think adds up the horizontal and vertical distances of the players of their last moves, 
+    #so it |my_x-opp_x|+|my_y-opp_y|. If our moves were close, this is a small number, if far, 
+    #this is large. Its the denominator at the end of the scoring, so I think the logic behind is that 
+    #the score can be scaled large if we were close (as we move on the same side of the board, so it 
+    #matters a lot how much difference we have in mobility), but doesn't matter much if we were far.
     m_distance = abs(pos_own[0] - pos_opp[0]) + abs(pos_own[1] - pos_opp[1])
 
     return float(move_diff / m_distance)

@@ -317,11 +317,12 @@ class PlanningGraph():
 		
         for action in actions:
             node_a = PgNode_a(action)
-            if node_a.prenodes.issubset(previous_s_levels):		
+            if node_a.prenodes.issubset(previous_s_levels):	
+                self.a_levels[level].add(node_a)
                 for node_s in node_a.prenodes:
                     node_s.children.add(node_a)
                     node_a.parents.add(node_s)
-                self.a_levels[level].add(node_a)
+                
 
     def add_literal_level(self, level):
         """ add an S (literal) level to the Planning Graph
@@ -442,7 +443,7 @@ class PlanningGraph():
 
         # TODO test for Competing Needs between nodes
         for s1 in node_a1.parents:
-            for a2 in node_a2.parents:
+            for s2 in node_a2.parents:
                 if s1.is_mutex(s2):
                     return True
         return False
@@ -502,7 +503,7 @@ class PlanningGraph():
         action1 = node_s1.parents
         action2 = node_s2.parents
         for s1 in action1:
-            for s1 in action2:
+            for s2 in action2:
                 if not s1.is_mutex(s2):
                     return False
         return True
@@ -516,9 +517,15 @@ class PlanningGraph():
         # TODO implement
         # for each goal in the problem, determine the level cost, then add them together
         for goal in self.problem.goal:
-            node = PgNode_s(goal,True)
-            for level, s_nodes in enumerate(self.s_levels):
-                if node in s_nodes:
-                    level_sum += level
+            level = 0
+            while True:
+                node = self.s_levels[level]
+                node_literals = []
+                for s1 in node:
+                    node_literals.append(s1.literal)
+                if goal in node_literals:
                     break
+                else:
+                    level +=1
+            level_sum += level
         return level_sum
