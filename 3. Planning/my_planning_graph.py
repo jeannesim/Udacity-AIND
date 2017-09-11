@@ -340,8 +340,8 @@ class PlanningGraph():
         #   may be "added" to the set without fear of duplication.  However, it is important to then correctly create and connect
         #   all of the new S nodes as children of all the A nodes that could produce them, and likewise add the A nodes to the
         #   parent sets of the S nodes
-        previous_s_levels = self.s_levels[level -1]
-        self.a_levels.append(set())
+        previous_s_levels = self.a_levels[level -1]
+        self.s_levels.append(set())
         for node_a in previous_s_levels:
             for node_s in node_a.effnodes:
                 self.s_levels[level].add(node_s)
@@ -367,10 +367,7 @@ class PlanningGraph():
         nodelist = list(nodeset)
         for i, n1 in enumerate(nodelist[:-1]):
             for n2 in nodelist[i + 1:]:
-                if (self.serialize_actions(n1, n2) or
-                        self.inconsistent_effects_mutex(n1, n2) or
-                        self.interference_mutex(n1, n2) or
-                        self.competing_needs_mutex(n1, n2)):
+                if (self.serialize_actions(n1, n2) or self.inconsistent_effects_mutex(n1, n2) or self.interference_mutex(n1, n2) or self.competing_needs_mutex(n1, n2)):
                     mutexify(n1, n2)
 
     def serialize_actions(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
@@ -525,6 +522,6 @@ class PlanningGraph():
                 if goal in node_literals:
                     break
                 else:
-                    level +=1
-            level_sum += level
+                    level = level+1
+            level_sum = level_sum + level
         return level_sum
