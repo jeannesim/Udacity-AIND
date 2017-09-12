@@ -3,9 +3,9 @@ from aimacode.search import Problem
 from aimacode.utils import expr
 from lp_utils import decode_state
 
+
 class PgNode():
     """Base class for planning graph nodes.
-
     includes instance sets common to both types of nodes used in a planning graph
     parents: the set of nodes in the previous level
     children: the set of nodes in the subsequent level
@@ -19,7 +19,6 @@ class PgNode():
 
     def is_mutex(self, other) -> bool:
         """Boolean test for mutual exclusion
-
         :param other: PgNode
             the other node to compare with
         :return: bool
@@ -31,7 +30,6 @@ class PgNode():
 
     def show(self):
         """helper print for debugging shows counts of parents, children, siblings
-
         :return:
             print only
         """
@@ -43,13 +41,11 @@ class PgNode():
 class PgNode_s(PgNode):
     """A planning graph node representing a state (literal fluent) from a
     planning problem.
-
     Args:
     ----------
     symbol : str
         A string representing a literal expression from a planning problem
         domain.
-
     is_pos : bool
         Boolean flag indicating whether the literal expression is positive or
         negative.
@@ -57,7 +53,6 @@ class PgNode_s(PgNode):
 
     def __init__(self, symbol: str, is_pos: bool):
         """S-level Planning Graph node constructor
-
         :param symbol: expr
         :param is_pos: bool
         Instance variables calculated:
@@ -72,11 +67,13 @@ class PgNode_s(PgNode):
         self.symbol = symbol
         self.is_pos = is_pos
         self.__hash = None
+        self.literal = expr(self.symbol)
+        if not self.is_pos:
+            self.literal = expr('~{}'.format(self.symbol))
 
     def show(self):
         """helper print for debugging shows literal plus counts of parents,
         children, siblings
-
         :return:
             print only
         """
@@ -88,7 +85,6 @@ class PgNode_s(PgNode):
 
     def __eq__(self, other):
         """equality test for nodes - compares only the literal for equality
-
         :param other: PgNode_s
         :return: bool
         """
@@ -107,7 +103,6 @@ class PgNode_a(PgNode):
 
     def __init__(self, action: Action):
         """A-level Planning Graph node constructor
-
         :param action: Action
             a ground action, i.e. this action cannot contain any variables
         Instance variables calculated:
@@ -131,7 +126,6 @@ class PgNode_a(PgNode):
 
     def show(self):
         """helper print for debugging shows action plus counts of parents, children, siblings
-
         :return:
             print only
         """
@@ -142,7 +136,6 @@ class PgNode_a(PgNode):
         """precondition literals as S-nodes (represents possible parents for this node).
         It is computationally expensive to call this function; it is only called by the
         class constructor to populate the `prenodes` attribute.
-
         :return: set of PgNode_s
         """
         nodes = set()
@@ -156,7 +149,6 @@ class PgNode_a(PgNode):
         """effect literals as S-nodes (represents possible children for this node).
         It is computationally expensive to call this function; it is only called by the
         class constructor to populate the `effnodes` attribute.
-
         :return: set of PgNode_s
         """
         nodes = set()
@@ -168,7 +160,6 @@ class PgNode_a(PgNode):
 
     def __eq__(self, other):
         """equality test for nodes - compares only the action name for equality
-
         :param other: PgNode_a
         :return: bool
         """
