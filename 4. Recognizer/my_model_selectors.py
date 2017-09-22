@@ -76,8 +76,19 @@ class SelectorBIC(ModelSelector):
         """
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        # TODO implement model selection based on BIC scores
-        raise NotImplementedError
+        BICscores = []
+        try:
+            for n in self.n_components:
+                model = self.base_model(n)
+                log_l = model.score(self.X, self.lengths)
+                p = n ** 2 + 2 * n * model.n_features - 1
+                BICscore = -2 * log_l + p * math.log(n)
+                BICscores.append(BICscore)
+        except Exception as e:
+            pass
+
+        states = self.n_components[np.argmax(BICscores)] if BICscores else self.n_constant
+        return self.base_model(states)
 
 
 class SelectorDIC(ModelSelector):
@@ -93,8 +104,22 @@ class SelectorDIC(ModelSelector):
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        # TODO implement model selection based on DIC scores
-        raise NotImplementedError
+        DICscores = []
+        logs_l = []
+        try:
+            for n_component in self.n_components:
+                model = self.base_model(n_component)
+                logs_l.append(model.score(self.X, self.lengths))
+            sum_logs_l = sum(logs_l)
+            m = len(self.n_components)
+            for log_l in logs_l:
+                other_words_likelihood = (sum_logs_l - log_l) / (m - 1)
+                DICscores.append(log_l - other_words_likelihood)
+        except Exception as e:
+            pass
+
+        states = self.n_components[np.argmax(DICscores)] if DICscores else self.n_constant
+        return self.base_model(states)
 
 
 class SelectorCV(ModelSelector):
@@ -104,6 +129,18 @@ class SelectorCV(ModelSelector):
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
+        mean_scores = []
+        split_method = KFold()
+        try:
+            for n_component in self.n_components:
+                model = self.base_model(n_component)
+                fold_scores = []
+                for _, test_idx in split_method.split(self.sequences):
+                    test_X, test_length = combine_sequences(test_idx, self.sequences)
+                    fold_scores.append(model.score(test_X, test_length))
+                mean_scores.append(np.mean(fold_scores))
+        except Exception as e:
+            pass
 
-        # TODO implement model selection using CV
-        raise NotImplementedError
+        states = self.n_components[np.argmax(mean_scores)] if mean_scores else self.n_constant
+        return self.base_model(states)
