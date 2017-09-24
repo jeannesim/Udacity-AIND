@@ -76,19 +76,25 @@ class SelectorBIC(ModelSelector):
         """
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        BICscores = []
+        bestmodel = self.base_model(self.n_constant)
+        bestscore = float('inf')
+        n_features = len(self.X[0])
+
         try:
-            for n in self.n_components:
-                model = self.base_model(n)
-                log_l = model.score(self.X, self.lengths)
-                p = n ** 2 + 2 * n * model.n_features - 1
-                BICscore = -2 * log_l + p * math.log(n)
-                BICscores.append(BICscore)
+            for num_components in range(self.min_n_components, self.max_n_components+1):
+                currentmodel = GaussianHMM(num_components=num_components, random_state=self.random_state, n_iter=1000).fit(self.X, self.lengths)
+                logL = currentmodel.score(self.X, self.lengths)
+                p = num_components * num_components + 2 * n_features*num_components - 1
+                N = len(self.X)
+                currentscore = (-2)*logL+p*np.log(N)
+                if currentscore < bestscore:
+                    bestmodel = currentmodel
+                    bestscore = currentscore
+
         except Exception as e:
             pass
 
-        states = self.n_components[np.argmax(BICscores)] if BICscores else self.n_constant
-        return self.base_model(states)
+        return bestmodel
 
 
 class SelectorDIC(ModelSelector):
@@ -103,25 +109,32 @@ class SelectorDIC(ModelSelector):
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-        DICscores = []
-        logs_l = []
+        
+        bestmodel = self.base_model(self.n_constant)
+        bestscore = float('-inf')
         try:
-            for n_component in self.n_components:
-                model = self.base_model(n_component)
-                logs_l.append(model.score(self.X, self.lengths))
-            sum_logs_l = sum(logs_l)
-            m = len(self.n_components)
-            for log_l in logs_l:
-                other_words_likelihood = (sum_logs_l - log_l) / (m - 1)
-                DICscores.append(log_l - other_words_likelihood)
+
+            for num_components in range(self.min_n_components, self.max_n_components+1):
+                currentmodel = GaussianHMM(num_components=num_components, random_state=self.random_state, n_iter=1000).fit(self.X, self.lengths)
+                logL = currentmodel.score(self.X, self.lengths)
+
+                sum_logL = []
+                for word in self.words:
+                    if word == self.this_word:
+                        continue
+                    word_n, word_len = self.hwords[word]
+
+                    sum_logL.append(currentmodel.score(word_n, word_len))
+
+                currentscore = logL - np.average(sum_logL)
+                if currentscore > bestscore:
+                    bestmodel = currentmodel
+                    bestscore = currentscore
         except Exception as e:
             pass
 
-        states = self.n_components[np.argmax(DICscores)] if DICscores else self.n_constant
-        return self.base_model(states)
-
-
+        return bestmodel
+        
 class SelectorCV(ModelSelector):
     ''' select best model based on average log Likelihood of cross-validation folds
 
@@ -129,18 +142,24 @@ class SelectorCV(ModelSelector):
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        mean_scores = []
-        split_method = KFold()
-        try:
-            for n_component in self.n_components:
-                model = self.base_model(n_component)
-                fold_scores = []
-                for _, test_idx in split_method.split(self.sequences):
+        
+        bestmodel = self.base_model(self.n_constant)
+        bestscore = float('-inf')
+        try:        
+            for num_components in range(self.min_n_components, self.max_n_components+1):
+                split_method = KFold(n_splits=min(3,len(self.lengths)))
+                logL = []
+                for train_idx, test_idx in split_method.split(self.sequences):
+                    train_X, train_length = combine_sequences(train_idx, self.sequences)
                     test_X, test_length = combine_sequences(test_idx, self.sequences)
-                    fold_scores.append(model.score(test_X, test_length))
-                mean_scores.append(np.mean(fold_scores))
+                    currentmodel = GaussianHMM(num_components=num_components, random_state=self.random_state, n_iter=1000).fit(train_X, train_length)
+                    logL.append(currentmodel.score(test_X, test_length))
+                currentscore = np.average(logL)
+                if currentscore > bestscore:
+                    bestmodel = currentmodel
+                    bestscore = currentscore
+                    
         except Exception as e:
             pass
 
-        states = self.n_components[np.argmax(mean_scores)] if mean_scores else self.n_constant
-        return self.base_model(states)
+        return bestmodel
