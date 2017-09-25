@@ -80,19 +80,20 @@ class SelectorBIC(ModelSelector):
         bestscore = float('inf')
         n_features = len(self.X[0])
 
-        try:
-            for num_components in range(self.min_n_components, self.max_n_components+1):
-                currentmodel = GaussianHMM(num_components=num_components, random_state=self.random_state, n_iter=1000).fit(self.X, self.lengths)
+        for n_components in range(self.min_n_components, self.max_n_components+1):
+            try:
+
+                currentmodel = GaussianHMM(n_components=n_components, random_state=self.random_state, n_iter=1000).fit(self.X, self.lengths)
                 logL = currentmodel.score(self.X, self.lengths)
-                p = num_components * num_components + 2 * n_features*num_components - 1
+                p = n_components * n_components + 2 * n_features*n_components - 1
                 N = len(self.X)
                 currentscore = (-2)*logL+p*np.log(N)
                 if currentscore < bestscore:
                     bestmodel = currentmodel
                     bestscore = currentscore
 
-        except Exception as e:
-            pass
+            except Exception as e:
+                pass
 
         return bestmodel
 
@@ -112,10 +113,11 @@ class SelectorDIC(ModelSelector):
         
         bestmodel = self.base_model(self.n_constant)
         bestscore = float('-inf')
-        try:
+        for n_components in range(self.min_n_components, self.max_n_components+1):
 
-            for num_components in range(self.min_n_components, self.max_n_components+1):
-                currentmodel = GaussianHMM(num_components=num_components, random_state=self.random_state, n_iter=1000).fit(self.X, self.lengths)
+            try:
+
+                currentmodel = GaussianHMM(n_components=n_components, random_state=self.random_state, n_iter=1000).fit(self.X, self.lengths)
                 logL = currentmodel.score(self.X, self.lengths)
 
                 sum_logL = []
@@ -130,8 +132,8 @@ class SelectorDIC(ModelSelector):
                 if currentscore > bestscore:
                     bestmodel = currentmodel
                     bestscore = currentscore
-        except Exception as e:
-            pass
+            except Exception as e:
+                pass
 
         return bestmodel
         
@@ -145,21 +147,22 @@ class SelectorCV(ModelSelector):
         
         bestmodel = self.base_model(self.n_constant)
         bestscore = float('-inf')
-        try:        
-            for num_components in range(self.min_n_components, self.max_n_components+1):
+        for n_components in range(self.min_n_components, self.max_n_components+1):
+
+            try:        
                 split_method = KFold(n_splits=min(3,len(self.lengths)))
                 logL = []
                 for train_idx, test_idx in split_method.split(self.sequences):
                     train_X, train_length = combine_sequences(train_idx, self.sequences)
                     test_X, test_length = combine_sequences(test_idx, self.sequences)
-                    currentmodel = GaussianHMM(num_components=num_components, random_state=self.random_state, n_iter=1000).fit(train_X, train_length)
+                    currentmodel = GaussianHMM(n_components=n_components, random_state=self.random_state, n_iter=1000).fit(train_X, train_length)
                     logL.append(currentmodel.score(test_X, test_length))
                 currentscore = np.average(logL)
                 if currentscore > bestscore:
                     bestmodel = currentmodel
                     bestscore = currentscore
                     
-        except Exception as e:
-            pass
+            except Exception as e:
+                pass
 
         return bestmodel
